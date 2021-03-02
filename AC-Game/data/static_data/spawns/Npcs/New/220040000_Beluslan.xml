@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<spawns>
+    <spawn_map map_id="220040000">
+		<!-- Draupnir Cave Back Exit -->
+        <spawn npc_id="730070" respawn_time="60" difficult_id="0" custom="true">
+            <spot x="1423.7488" y="2696.041" z="608.04614" static_id="152"/>
+        </spawn>
+    </spawn_map>
+</spawns>

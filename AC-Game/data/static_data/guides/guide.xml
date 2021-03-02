@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<guides xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="guide.xsd">
+
+	<guide title="adventurers_guide65_ely" level="1"  race="ASMODIANS" rewardCount="7">
+        <message><![CDATA[<BR><BR>
+			Congratulations!
+			<br><br>]]>
+        </message>
+        <select>Click here to close window</select>
+        <survey itemId="187060103" count="1"/>
+    
+    </guide>
+</guides>

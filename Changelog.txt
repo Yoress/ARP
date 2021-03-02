@@ -1,0 +1,1665 @@
+Various code clean up as interacted with... removed unimplemented and unnecessary overrides (things like empty onFail methods in admin commands), added default cases to switch blocks, etc.
+
+Welcome message changed on login.
+
+com.aionemu.gameserver.services.base.Base class changed to reflect new intended behaviour for camps (garrisons).
+	Intended behaviour is as follows:
+		When a camp is pink, NPCs do NOT try to capture it.
+		Captains spawn after 5 minutes of last capture.
+		The pink faction NPC's will attempt to retake camps that are not theirs 10 minutes after the captain spawns.
+		When the pink faction NPC's retake a camp, they spawn in and attack the camp NPC's. After 10 seconds if the pink faction NPC's are alive, the camp is captured.
+
+	Predicted bugs:
+		If a random field mob kills the captain, then the base mobs might despawn until next server restart.
+			Needs fix in BossDeathListener (same package as above) if this is the case.
+			
+		If someone manages to kill the pink faction NPC's before the camp is captured, the next spawn will be in 20 mins, instead of the intended 10.
+			Might just leave this in as a feature since that someone put their try-hard panties on.
+
+	Test idea:
+		If the captain is lured far away from the base when the pink faction NPCs spawn to recapture it, what will happen on the server's end?
+
+Admin Speed command modified to correctly return to base speed value when using "//speed 0".
+
+Bases in Kaldor and Levinshor have been disabled.
+	This includes the agent fight.
+	This breaks Kaldor siege, if the server crashes upon start of the siege or not has yet to be investigated.
+
+_______________________________________________________________________________________________________________________________________________________________________________
+
+1st Fenris Fang's Quest now skips the Artist/Engineer NPC's.
+
+1st Miragent Holy Templar Quest now skips the Artist/Engineer NPC's.
+
+com.aionemu.gameserver.network.aion.clientpackets.CM_EMOTION changed to make emotes face target and cancel protectionActiveTask (blinking).
+
+com.aionemu.gameserver.network.aion.clientpackets.CM_CHAT_MESSAGE_PUBLIC changed to make say/shout chat cancel protectionActiveTask (blinking).
+
+com.aionemu.gameserver.network.aion.clientpackets.CM_MOVE changed to cancel protectionActiveTask (blinking) on players that do small movements.
+
+com.aionemu.gameserver.world.World#removeObject changed to have a NullPointer try/catch block on BaseSpawnTemplate checks (original checks for null values failed).
+
+quest.altgard._2290GrokensEscape reworked.
+	The boat must be used to progress the quest. Groken will follow you until the boat is used instead of despawning upon reaching the boat.
+	Added troll/grief prevention (Taking Groken too far will despawn him, and so will keeping him following you for 5 mins).
+
+com.aionemu.gameserver.model.gameobjects.Creature#isFlying renamed to isFlyingOrGliding for clarity.
+
+com.aionemu.gameserver.model.gameobjects.Creature#isInFlyingState renamed to isFlying for clarity.
+
+com.aionemu.gameserver.skillengine.condition.OnFlyCondition#validate methods changed to no longer return true when gliding.
+
+com.aionemu.gameserver.network.aion.clientpackets.CM_PING#runImpl modified to log possible client timer cheats with a different wording when the player is not being kicked.
+
+com.aionemu.gameserver.network.aion.clientpackets.CM_PING_INGAME#runImpl modified to log possible client timer cheats with a different wording when the player is not being kicked.
+
+com.aionemu.gameserver.network.aion.serverpackets.SM_TELEPORT_LOC modified to remove player target (on the server's side) when teleporting the player.
+
+Added a configuration option to custom configs to disable godstone skills.
+	Changed it so that godstones are basically cosmetic
+
+Changed com.aionemu.gameserver.model.items.GodStone#onEquip to enforce the configuration to disable godstone skills.
+
+Added a teleport to quest.beluslan._2051SavingBeluslanFortress when the player interacts with a Temporal Transport Stone (NPC: 700284).
+
+Legion config modified to allow spaces in legion names.
+
+Modified admincommands.LegionCommand to allow changing to a name with spaces, updated #onFail to inform users to use underscores instead of spaces with the command.
+
+Created admincommands.Unlink as a method to read the content of a link.
+
+Added the new unlink command to the command config file with an access level of 0.
+
+Deleted the player Dye command (playercommands.cmd_dye), as it was a duplicate of the admin command (admincommands.Dye).
+
+Added a fly path teleport to quest.reshanta._2075PuttingontheSpeed to send the player back to Gaochinerk after their excursion to Black Cloud Island
+
+com.aionemu.gameserver.services.siegeservice.BalaurAssaultService modified to add calls for Artifact assaults after 1 hour.
+
+Implemented com.aionemu.gameserver.services.siegeservice.ArtifactAssault.
+	Tiamaranta and Kaldor active assault is not currently supported.
+
+com.aionemu.gameserver.services.siegeservie.ArtifactSiege modified to allow forced captures.
+
+com.aionemu.gameserver.ShutdownHook#shutdownHook(int, int, ShutdownMode) changed to not allow an interval of zero.
+
+admincommands.SiegeCommand -- Fixed a bug in the assault method.
+
+com.aionemu.gameserver.services.siegeservice.Siege#stopSiege order of onSiegeFinish method calls changed from ArtifactSiege>BalaurAssault to BalaurAssault>ArtifactSiege to prevent newly scheduled artifact assaults from being cancelled.
+
+Corrected the positioning of javadoc for com.aionemu.gameserver.utils.MathUtil#bigSqrt(BigDecimal, MathContext) so it's actually useful.
+
+_______________________________________________________________________________________________________________________________________________________________________________
+
+com.aionemu.gameserver.model.stats.container.CreatureGameStats
+	#getStat(StatEnum, Stat2) removed the cast of owner to Creature so Player objects return the proper value when #isPlayer() is called during call to StatCapUtil#calculateBaseValue(Stat2, byte).
+	removed the cast of owner to Creature during #getStat(StatEnum, int), #getStat(StatEnum, int, float), #getReverseStat(StatEnum, int), and #getReverseStat(StatEnum, int, float).
+
+com.aionemu.gameserver.model.stats.container.PlayerGameStats#updateStatInfo() changed to call #onStatsChange() prior to sending the SM_STATS_INFO packet.
+	Fixed an issue where HP/MP did not update correctly on the client side.
+
+com.aionemu.gameserver.services.rift.RiftInformer#getSpawned(int) modified to use synchronization AND a copy to avoid an exception.
+	TODO: Still throws the exception?
+
+com.aionemu.gameserver.ai2.manager.EmoteManager#emoteStartAttacking(Npc) modified to return if target is null (it happens rarely).
+
+Added Custom Config for enabling vertical movement blinking checks, and a value to use as tolerance for those checks.
+	Added these configs to the custom.properties config file with the default values of true, and 3.0.
+
+Tweaked com.aionemu.gameserver.network.aion.clientpackets.CM_MOVE to use custom configuration options for vertical movement checks before canceling blinking.
+
+Added #lootlessCorpseCheck() to com.aionemu.gameserver.controllers.CreatureController called during #onDie(Creature), and #onDieSilence().
+	The intention is to despawn mobs that have no loot as they die so a player doesn't need to open an empty loot window.
+	Consider changing com.aionemu.gameserver.services.RespawnService#scheduleDecayTask(Npc) to have instant decay instead on empty loot.
+	Made corpses disappear on death when there isn't any loot.
+
+com.aionemu.gameserver.services.drop.DropService#requestDropList(Player, int) modified to add a 30s decay timer onto entities that do not already have a decay task set.
+	This allows quest items to be opened, and then closed without them despawning instantly.
+	NOTE: Once all quest item NPCs are updated to use ai: quest_use_item, this code will not be needed anymore, but will be kept for redundancy.
+	Prevented Lootable Quest NPCs from despawning instantly after closing the loot window (if they aren't empty).
+	
+com.aionemu.gameserver.model.gameobjects.player.Player#setAttackMode(boolean) modified to make the player run if they were walking when they draw their weapon and vise-versa
+	Added #setWalkingBeforeWeaponDraw(boolean), wasWalkingBeforeWeaponDraw() and #wasWalkingBeforeWeaponDraw to support this.
+	com.aionemu.gameserver.network.aion.clientpackets.CM_EMOTION modified to support walking before weapon draw
+	Drawing your weapon now puts you into a running state. You can still toggle if you return to walking or not when you sheathe your weapon while it's drawn.
+
+com.aionemu.gameserver.network.aion.clientpackets.CM_WINDSTREAM reworked to allow correct entering of a windstream while flying, and to correctly support furled wing exits.
+com.aionemu.gameserver.network.aion.clientpackets.CM_EMOTION modified to support windstream strafing.
+com.aionemu.gameserver.network.aion.serverpackets.SM_EMOTION modified to support windstream strafing.
+	Windstreams have been wrangled.
+    	You can properly enter them while flying now, and exiting them won't keep you moving at windstream speeds.
+	    You can now furl your wings inside them to drop out without the server still thinking you're inside the stream.
+	    Windstream Strafing has been implemented.
+
+Changed userinfo player command config so it can be used by everyone.
+
+ai.QuestItemNpcAI2#hadleUseItemFinish(Player) modified to kill the owner NPC when a player opens it and change the decay timer to something shorter based on group size.
+
+com.aionemu.gameserver.restrictions.PlayerRestrictions#canAffectBySkill(Player, VisibleObject, Skill) -- removed flying restriction on flight time restoration.
+	Fixed an issue preventing the use of flight time potions while not flying.
+
+com.aionemu.gameserver.skillengine.model.Skill#sendCastspellEnd(int, int, List<Effect>) -- removed the system message stating an item was used.
+	Added the system message back, changed duplicate message handling to be inside CM_USE_ITEM for now.
+	Fixed an issue where item use messages would show up in chat twice.
+
+com.aionemu.gameserver.model.stats.container.PlayerLifeStats#onIncreaseFp(TYPE, int, int, LOG) modified to not call #sendAttackStatusPacketUpdate(TYPE, int, int, LOG) if the TYPE is NATURAL_FP.
+	Fixed the yellow +1 spam on flight time regen (by removing it). The numbers will still appear when you use potions, or other means of restoring flight time.
+
+com.aionemu.gameserver.model.templates.item.actions.AdoptPetAction#act(Player, Item, Item) implemented to self-hatch pets.
+	Added com.aionemu.gameserver.configs.main.CustomConfig#PLAYER_PET_EGG_INCUBATION for self-hatching pets. 
+	#canAct(Player, Item, Item) modified to return true if custom config option allows to self-hatch pets.
+	Added the config to the custom.properties config file with the default value of true.
+	Added Custom config for self-hatching pets; it's currently allowed. Just use the egg in your cube!
+
+com.aionemu.gameserver.services.RespawnService#scheduleRespawnTask(VisibleObject) modified to set Creature respawn task instead of trying to prevent it in $RespawnTask
+	$RespawnTask#run() modified to no longer try to cancel the respawn task for NPC's.
+	Fixed an issue that could have caused double respawns.
+		Could still be a problem if something has a very short respawn timer and has a respawn scheduled twice somehow (this can happen, it's how I noticed the issue).
+		If you see any double respawning happen, let me know where and how you caused it so I can investigate how it happened.
+
+com.aionemu.gameserver.services.RiftService#closeRift(RiftLocation) -- Added a null check to RiftLocation.
+
+com.aionemu.gameserver.services.item.ItemService#addStackableItem(Player, ItemTemplate, long, ItemUpdatePredicate) -- corrected the check for powershard items so they stack in equipment slots first.
+com.aionemu.gameserver.services.item.ItemMoveService#moveItem(Player, int, byte, byte, short) modified to move powershards into equipment slots first.
+com.aionemu.gameserver.model.gameobjects.player.Equipment#equipItem(int, long) modified to treat power shards differently (try to equip over lower tier shards first).
+com.aionemu.gameserver.model.gameobjects.player.Equipment#equip(long, Item) modified to treat power shards and arrows differently (stack them with existing equipped stack first).
+	Looting/Buying/Moving/Equipping power shards now correctly stacks them into equipped stacks first.
+	Unequipping power shards won't stack them into existing stacks in the cube. I'm not sure of the retail behaviour for this.
+
+removed some dead code from com.aionemu.gameserver.model.gameobjects.player.Player
+
+Created com.aionemu.gameserver.network.aion.gmhandler.CmdDeleteItems
+
+com.aionemu.gameserver.network.aion.clientpackets.CM_GM_COMMAND_SEND -- Delete Item command implemented.
+
+com.aionemu.gameserver.model.templates.item.ItemQuality reworked and documented.
+
+_______________________________________________________________________________________________________________________________________________________________________________
+
+Corrected an unintended config change in admin configs for unlimited flight time for GM's.
+
+com.aionemu.gameserver.services.abyss.AbyssPointsService
+	#checkRankChanged(Player, AbyssRankEnum, AbyssRankEnum) + #checkRankGpChanged(Player, AbyssRankEnum, AbyssRankEnum) modified to update the player profile.
+	#setGp(Player, int) + #setAp(Player, int) no longer send the packet to update the player profile.
+	Semi-fixed an issue where abyss rank information wasn't updated properly for the client.
+		Non-GM toons don't seem to update properly.
+
+com.aionemu.gameserver.services.abyss.AbyssRankUpdateService
+	#updateGpRankTo(AbyssRankEnum, int) changed to #updateGpRankTo(AbyssRankEnum, int, int) and modified to update top_ranking in the database.
+	#selectRank(AbyssRankEnum, List) corrected (so that it does something instead of nothing).
+	#updateLimitedGpRanks() corrected to have intended behaviour.
+	#updateToNoQuotaGpRank(List) + #updateToNoQuotaRank(List) removed.
+	Fixed an issue where all players with more than 1,243 GP but less GP than the top 1,000 players would be given Governor rank.
+	Fixed an issue where players without a GP rank were assigned to Soldier, rank 1.
+
+com.aionemu.gameserver.model.gameobjects.player.AbyssRank
+	#addAp(int) modified to prevent players with a GP rank from being demoted when losing AP.
+	#addGp(int) modified to no longer set player rank upon gain/loss of GP.
+	Fixed an issue where a player would be demoted when gaining/losing AP when their GP is controlling their rank.
+	Fixed an issue where GP ranks wouldn't update properly.
+
+com.aionemu.gameserver.utils.stats.AbyssRankEnum
+	#getRankForAp(int) modified to not consider GP controlled ranks.
+	#getRankForGp(int) modified to not consider AP controlled ranks.
+
+com.aionemu.commons.database.dao.DAO.AbyssRankDAO -- added #updateTopRanking(int, int)
+	mysql5.MySQL5AbyssRankDAO#loadAbyssRank
+		Implemented #updateTopRanking(int, int)
+		Modified SQL commands to exclude GM GP rank tracking.
+			Fixed an issue where having the exact amount of GP needed for a rank would not properly update your character to said rank.
+			Fixed an issue preventing ranked players from seeing their numeric rank in the profile window.
+			Removed GM GP Rank tracking from the database ('cause GM's don't show up on the rank list, but they could still occupy a rank slot).
+
+Added custom configs for the login welcome message.
+	com.aionemu.gameserver.services.player.PlayerEnterWorldService modified to use them.
+
+_______________________________________________________________________________________________________________________________________________________________________________
+
+com.aionemu.gameserver.network.aion.clientpackets.CM_SET_NOTE#runImpl() modified to send out note updates to the player editing their note and everyone else in the area.
+	Fixed an issue where changing your note wouldn't update for you or others in the area.
+
+com.aionemu.gameserver.network.aion.clientpackets.CM_CASTSPELL#runImpl() modified to allow players to cancel their cast skills by pressing escape.
+	Fixed an issue where you couldn't cancel skill casts by hitting the escape key.
+
+com.aionemu.gameserver.network.aion.clientpackets.CM_USE_ITEM -- removed some console spam caused by tuning an item, implemented item use cancel
+	Fixed an issue where you couldn't cancel item uses by hitting the escape key.
+
+com.aionemu.gameserver.model.templates.item.actions.EnchantItemAction
+	#act(Player, Item, Item, Item, int) modified to use an ItemUseObserver to watch for player's canceling the item, and to allow chained manastone socketing.
+	Fixed an issue where you could move while enchanting items (similar to how you could move while blinking).
+	Fixed an issue preventing chained manastone socketing.
+
+com.aionemu.gameserver.model.templates.item.actions.TuningAction slight change to SM_ITEM_USAGE_ANIMATION() call in abort() so the item animation is cancelled and not failed.
+
+com.aionemu.gameserver.network.aion.clientpackets.CM_TUNE -- Added a very hackish way to make the client play the tuning animation.
+	FIXME
+	Temporarily fixed an issue where tuning animations were not being played.
+
+updated admincommands.Unlink to be more strict about what's considered a link, and also rejects trying to unlink more than one link at a time.
+	needs light testing
+
+com.aionemu.gameserver.services.player.PlayerLeaveWorldService#startLeaveWorld(Player) -- Removed duplicate logout handling.
+	Fixed an issue where players were notified twice that a member of their group/alliance disconnected.
+
+updated slf4j-logback.xml for the gameserver/chatserver/loginserver to properly output WARN or higher in System.err.
+
+com.aionemu.gameserver.GameServer -- Changed console section output to be less ugly/spammy.
+
+com.aionemu.gameserver.ShutdownHook modified to correctly check for configuration of dumping executable stats.
+
+com.aionemu.gameserver.services.abyss.AbyssRankUpdateService -- Reworked the abyss rank update process so it only updates GP Ranked players once.
+	Fixed an issue where rank updates were happening twice for a single player
+
+com.aionemu.gameserver.model.templates.spawns.SpawnTemplate -- added #setFly(int), and #setHeading(byte).
+
+created admincommands.NpcUtility -- Contains copy/cut/paste/walker commands for manipulating NPC spawns and behaviour.
+	Access set to level 4 GM.
+	Needs testing.
+	TODO: Add map height handling for pos links in the abyss.
+	Added copy/cut/paste/walker commands -- more features eventually, suggest any others you want.
+	
+updated the unlink.java file to contain a license header, and to maintain spaces within links.
+
+com.aionemu.gameserver.dataholders.WalkerData#AddTemplate(WalkerTemplate) modified to add the template to live set, too.
+	Created #AddUnsavedTemplate(WalkerTemplate) for use with admincommands.NpcUtility
+	Created #removeUnsavedTemplate(String) for use with admincommands.NpcUtility
+
+converted new emote behaviour into a custom config.
+
+com.aionemu.gameserver.model.stats.container.CreatureGameStats
+	#checkHPStats() and #checkMPStats() modified to no longer update player stats based on a percentage when they are in combat.
+	Prevented HP and MP healing exploit via changing gear back and forth while in combat.
+
+com.aionemu.gameserver.ai2.manager.WalkManager#findClosestRouteStep(Npc, List<RouteStep>, RouteStep) modified so it can pick a point the NPC is already ontop of.
+	Fixed an issue where walker NPC's ignored their first position
+
+com.aionemu.gameserver.questEngine.handlers.QuestHandler
+	Added an ItemUseObserver to #useQuestItem(QuestEnv, Item, int, int, boolean, int, int, int, int),
+	and added the successful item use runnable to the Player's PlayerController as the USE_ITEM task so it can be cancelled properly,
+	along with an added 'item used' message from the server.
+	Changed the handling of quest item usage.
+
+com.aionemu.gameserver.network.aion.clientpackets.CM_EMOTION -- Targeting things no longer cancels item use.
+	Fixed an issue where changing target would incorrectly cancel the use of an item.
+
+com.aionemu.gameserver.network.aion.clientpackets.CM_USE_ITEM -- removed the incorrect system message stating you cannot use quest items.
+	Removed the incorrect system message stating you cannot use quest items.
+
+admincommands.Info -- Added respawn information.
+	Tweaked the `//Info` command to show some extra information about respawns.
+
+com.aionemu.gameserver.network.factories.AionPacketHandlerFactory modified so CM_SERVER_CHECK is State.AUTHED, instead of State.CONNECTED
+	Fixed an issue where the server select packet wasn't being processed.
+
+com.aionemu.gameserver.network.aion.clientpackets.CM_SERVER_CHECK -- Implemented #runImpl() so players can access the server list from the character selection screen.
+
+com.aionemu.gameserver.network.aion.clientpackets.CM_USE_ITEM
+	Removed the System Message packet that would inform the player they used an item, as that should be elsewhere when the item's usage actually completes.
+
+com.aionemu.gameserver.controllers.effect.EffectController
+	Pykachu submitted fix: #checkEffectCooldownId(Effect) modified to return for flame cage and erosion, as they should stack.
+	Pykachu fixed an issue that prevented Flame Cage and Erosion from stacking on the same target.
+
+quest.altgard._2016FearThis -- Pykachu submitted fix: modified to spawn mobs when using the poison (so it's more retail-like)
+	Pykachu Reworked the Fear This Campaign (ID:2016).
+
+Pykachu submitted fix: static_data\world_maps.xml -- waterlevel for altgard changed to 248
+	verified in level data
+	Pykachu corrected the water level of Altgard.
+
+com.aionemu.gameserver.controllers.PlayerController#onEnterZone(ZoneInstance) modified to check for CustomConfig.ENABLE_RIDE_RESTRICTION so players aren't dismounted when mounts are configured to be allowable everywhere.
+	Fixed an issue where you would be dismounted when changing zones.
+
+com.aionemu.gameserver.geoEngine.GeoWorldLoader
+	#loadMeshs(String) modified to use unsigned short values for vectorCount and to filter out meshes that have no collision intention.
+	#loadWorld(int, Map, GeoMap) modified to no longer set the name to lowercase when looking in the given String-Spatial map for the mesh.
+	Tweaked Geodata loading so it's compatible with our version of the client.
+
+com.aionemu.gameserver.spawnengine.VisibleObjectSpawner#spawnSummon(Player, int, int, int, int) modified to spawn summons in front of the player instead of ontop of them.
+	#spawnSummon(Player, int, int, int, int) modified to set the summon's summonSkillId
+
+com.aionemu.gameserver.model.gameobjects.Summon -- Added #setSummonSkillId(int), and #getSummonSkillId().
+
+com.aionemu.gameserver.services.summons.SummonsService$ReleaseSummonTask#run() modified to set the player's summon skill cooldown.
+	call to ReleaseSummonTask changed to 3400ms delay instead of 5000ms to be closer to the delay shown on the client
+	Changed the delay on releasing a summoned entity so you can continue with a new summon faster.
+
+com.aionemu.gameserver.network.aion.serverpackets.SM_SKILL_COOLDOWN
+	added new constructors for updating cooldown information, left the old constructor and its implementation alone for backwards compat
+	TODO: Document rework
+	Half-fixed (unintentionally) an issue where resetting skill cooldowns would cause wild spinning to occur.
+		If you spot this still, and want me to fix it fully, let me know (along with which skill is being a problem child).
+
+Implemented com.aionemu.gameserver.network.aion.serverpackets.SM_SUMMON_PANEL_REMOVE
+	Fixed an issue where summoning cooldowns were not displayed properly.
+
+gameserver.properties changed to no longer run a timer thread with System.GC
+	com.aionemu.gameserver.services.gc.GarbageCollector modified to use the ThreadPoolManager instead of a Timer task.
+
+com.aionemu.gameserver.controllers.NpcController#onDie(Creature) and #onDieSilence() changed to reflect the new behaviour of com.aionemu.gameserver.services.RespawnService#scheduleRespawnTask(VisibleObject)
+	Fixed the issue preventing mob respawns.
+
+com.aionemu.gameserver.world.zone.handler.MaterialZoneHandler reverted to 3.9 implementation because some idiot commented out the important part.
+	modified to have actOnEnter be based on Material ID.
+	Tweaked geodata skill handling to be more aggressive.
+
+com.aionemu.gameserver.controllers.observer.CollisionMaterialActor modified to support conditional fire damage.
+	Implemented conditional geodata skills (it's based on time and weather).
+		This really only applies to fire, but if you aren't taking damage from certain flames, this is why.
+
+com.aionemu.gameserver.model.templates.item.actions.RideAction#act(Player, Item, Item) modified to send a cancel animation within the ItemUseObserver instead of a fail animation.
+	Corrected the animation played when a player cancels getting on a mount.
+
+com.aionemu.gameserver.services.teleport.TeleportService2
+	#sendLoc(Player, int, int, float, float, float, byte, int, int) changed to #sendLoc(Player, int, int, float, float, float, byte, int, int, long) and modified to deduct the price of the teleport upon completion. 
+	#checkKinahForTransportation(HotspotTeleportTemplate, Player, int, boolean) modified to not reduce the kinah of the player, but only check if they have enough, and to return the cost of the teleport.
+	Fixed an issue where using the map to teleport would charge you kinah before the teleport completed.
+
+com.aionemu.gameserver.model.geometry.SemisphereArea -- Points on the border should now be considered "inside"
+	com.aionemu.gameserver.model.geometry.SphereArea -- modified in the same way
+
+com.aionemu.gameserver.controllers.movement.NpcMoveController#setRouteStep(RouteStep, RouteStep) modified to look at Z values with the GeoService
+
+custom.properties modified to allow 7 purchased rows of cube space.
+	static_data\cube_expander\cube_expander.xml modified to fit within the config change.
+	Available cube space has been modified.
+		(No Maro, Cube 4 is not available, the missing space is being moved to personal warehouses)
+
+com.aionemu.gameserver.network.aion.serverpackets.SM_CHARACTER_LIST modified to load the player account from the database instead of using a cached version.
+
+com.aionemu.gameserver.network.aion.PlayerInfo -- modified to check for the item equipment slot instead of the item template slot, and include plumes.
+	Tweaked the character display for the character selection screen.
+
+_______________________________________________________________________________________________________________________________________________________________________________
+
+Created com.aionemu.gameserver.geoEngine.scene.NavGeometry
+Created com.aionemu.gameserver.world.geo.nav.NavData
+Created com.aionemu.gameserver.world.geo.nav.NavService
+Created com.aionemu.gameserver.world.geo.nav.NavHelper -- TODO: Add Arbitrary Value Config
+	Implemented initial Pathfinding systems
+
+com.aionemu.gameserver.GameServer#main(String[]) -- added NavService Initialization
+
+com.aionemu.gameserver.ai2.manager.SimpleAttackManager#attackAction(NpcAI2) changed to consider the target as too far away when world geometry is in the way.
+
+com.aionemu.gameserver.controllers.movement.NpcMoveController -- TODO: Change geo delay to be a config
+	Removed several redundant checks when calling AI2Logger
+	#moveToLocation(float, float, float, float) -- Added support for pathfinding cache
+	#moveToDestination() -- Added support for pathfinding
+
+com.aionemu.gameserver.taskmanager.tasks.MovementNotifyTask$MoveNotifier#visit(Npc, VisibleObject) -- removed duplicate check when calling AI2Logger
+
+Added a //nav admincommand for testing pathfinding.
+	added necessary command config and set it to GM level 1 in commands.properties.
+
+Added a GeoDataConfig for enabling pathfinding to geodata.properties.
+
+com.aionemu.gameserver.geoEngine.GeoWorldLoader
+	Ensured that RandomAccessFile objects are closed in #loadMeshs(String), and #loadWorld(int, Map, GeoMap).
+	Removed unused Logger.
+
+com.aionemu.gameserver.services.item.ItemService modified to allow for inventory overflow when adding items.
+	Alex submitted a fix for item overflow.
+
+com.aionemu.gameserver.geoEngine.collision.CollisionResult -- Changed #geometry to type Spatial instead of Geometry
+
+com.aionemu.gameserver.network.aion.ServerPacketsOpcodes -- SM_PLAYER_STANCE set opcode to 0x1F from 0x2F
+
+com.aionemu.gameserver.controllers.movement.SiegeWeaponMoveController -- Added untested pathfinding.
+
+com.aionemu.gameserver.controllers.observer.AbstractCollisionObserver -- Reworked to actually function; Using a bounding box to detect if
+	the Creature is standing on the geometry, the collision results are now correctly passed to #onMoved(CollisionResults);
+
+com.aionemu.gameserver.controllers.observer.CollisionMaterialActor -- restructured how each actor considers itself as acting or needing to act.
+
+com.aionemu.gameserver.world.zone.handler.MaterialZoneHandler -- added in-game GM logging support, reverted prior change having to do with actOnEnter.
+
+com.aionemu.gameserver.geoEngine.collision.bih.BIHNode -- Uncommented code related to bounding box collision
+
+Toggled geodata.properties Object Factory to false.
+
+com.aionemu.gameserver.skillengine.effect.ProcAtkInstantEffect -- Added a check for material skills;
+	they don't show properly in the client log when using LOG#PROCATKINSTANT, but do with LOG#SPELLATK
+
+com.aionemu.gameserver.utils.stats.XPLossEnum -- Uncommented L6, L30, L40;
+	Corrected #getExpLoss(int, long) to return 0 if the level is below 5 NOT 50.
+	TODO: Correct the exp loss percentages
+
+com.aionemu.gameserver.network.aion.PlayerInfo -- Changed the timestamp to an int for list position.
+	#writePlayerInfo(PlayerAccountData) changed to #writePlayerInfo(PlayerAccountData, int)
+	reworked how visible equipment is written out to the client.
+
+com.aionemu.gameserver.network.aion.serverpackets.SM_CHARACTER_LIST reverted change to load the player account from the database instead of using a cached version.
+	Added a decrementing count for listing player characters with the update to superclass PlayerInfo
+
+com.aionemu.gameserver.services.player.PlayerLeaveWorldService
+	added update to Account equipment item list in #startLeaveWorld(Player) so players who log to character select are wearing the correct gear.
+
+com.aionemu.gameserver.network.aion.iteminfo.CompositeItemBlobEntry -- Added support for fused items with extra manastone slots.
+
+AC-Game/data/static_data/items/item_templates.xml -- updated all items marked with the pack effect; any that were named as tuning scrolls have been changed to tuning effect.
+
+com.aionemu.gameserver.network.aion.iteminfo.PremiumOptionInfoBlobEntry -- Added support for showing number of remaining tune attempts.
+
+com.aionemu.gameserver.model.templates.item.actions.TuningAction
+	Reworked act(Player, Item, Item) and canAct(Player, Item, Item)
+	Prevented tune count decrement when using an Enduring-type scroll.
+	Moved all item modification to packet chain starting with SM_TUNE_PREVIEW.
+
+Created com.aionemu.gameserver.network.aion.serverpackets.SM_TUNE_PREVIEW.
+Created com.aionemu.gameserver.network.aion.clientpackets.CM_TUNE_PREVIEW_RESPONSE.
+	Added them both to their respective opcode handlers.
+
+com.aionemu.gameserver.model.gameobjects.Item
+	#setRndBonus() modified to adjust random max enchant level, #setFusionedItem(ItemTemplate) modified to remove all remaining retunes.
+	added #createTuneResults(), and #applyTuneResults(TuneResults, Player), #getMaxEnchantLevel(), #getBonusEnchantLevel(), and #maxEnchantLevel
+	created Item$TuneResults
+	Adjusted constructors to set/initialize #maxEnchantLevel.
+		com.aionemu.gameserver.services.transfers.CMT_CHARACTER_INFORMATION updated for new constructor
+		com.aionemu.gameserver.network.loginserver.serverpackets.SM_PTRANSFER_CONTROL updated for new constructor
+		mysql5.MySQL5InventoryDAO -- multiple load/store methods updated for new constructor
+		mysql5.MySQL5LegionDAO -- #loadLegionStorage(Legion) updated for new constructor
+		mysql5.MySQL5BrokerDAO -- #getBrokerItems() updated for new constructor
+		mysql5.MySQL5MailDAO -- #loadMailboxItems(int) updated for new constructor
+
+Adjusted all calls to ItemTemplate#getMaxEnchantLevel() to be Item#getMaxEnchantLevel()
+	com.aionemu.gameserver.services.EnchantService#amplifyItem(Player, Item, Item, Item)
+		#enchantItemAct(Player, Item, Item, int, boolean)
+	playercommands.cmd_enchant#enchant(Player, int) -- TODO: Rework this command, it's shit
+
+com.aionemu.gameserver.network.aion.AionPacketHandler -- reworked #getClientPacketName(int) for simplicity and made it public.
+
+events.properties changed for next patch to disable event decor and item event gift spam
+
+_______________________________________________________________________________________________________________________________________________________________________________
+
+Rates.properties modified to no longer have "Holiday" rates.
+
+com.aionemu.loginserver.network.aion.serverpackets.SM_SERVER_LIST
+	Tweaked the login server so it shows the correct character count
+	(at least in the case of only one gameserver -- for some reason multiple servers get interpreted incorrectly by the client)
+
+com.aionemu.gameserver.utils.MathUtil -- Added #estimateHeadingFrom(VisibleObject, VisibleObject), and #diamondAngle(float, float).
+
+com.aionemu.gameserver.controllers.CreatureController#attackTarget(Creature, int) -- modified to update Creature heading.
+
+com.aionemu.gameserver.spawnengine.VisibleObjectSpawner#spawnPet(Player, int) modified to spawn pets next to the player instead of ontop of them.
+	#spawnTrap(SpawnTemplate, int, Creature, int) -- tweaked trap custom event handling, and how they spawn in hide
+	
+com.aionemu.gameserver.network.aion.serverpackets.SM_VERSION_CHECK -- added #getServerIPForClient(AionConnection) to support chat server connections for local clients.
+
+ai.TrapNpcAI2 -- Uncommented #handleCustomEvent(int, Object...) and tweaked it for safety.
+	changed #tryActivateTrap(Creature) to use #trapRange if available, and set it to protected synchronized.
+	$TrapDelete#TrapDelete(TrapNpcAI2) -- modified to change #trapRange to -2 for checking if the trap can be activated again.
+	Added #scheduleForDeletion(int), #isScheduledForDeletion(), and #getTrapRange() for subclasses to utilize.
+
+Created com.aionemu.gameserver.ai2.ai.instance.fire_temple package
+	Implemented KromedeAI2, and KromedeTrapAI2 into it.
+	Altered `data\static_data\npcs\npc_templates.xml`
+		Kromede the Corrupt (ID: 212846), Vile Judge Kromede (ID: 214621), and Suspicious Object (ID: 280501) AI's have been changed.
+			Kromede now uses KromedeAI2 ("ftkromede"), and Suspicious Object now uses KromedeTrapAI2 ("ftkromedetrap")
+
+com.aionemu.gameserver.ai2.AI2Actions -- added #useSkill(AbstractAI, int, int).
+
+com.aionemu.gameserver.ai2.AbstractAI#ask(AIQuestion) modified to return AIAnswers.POSITIVE for Heroic mobs if the question is AIQuestion.CAN_RESIST_ABNORMAL
+	TODO: Some Heroic mobs are not immune to altered states (namely in Padmaraska's Cave) and need their AI overridden to have correct behaviour.
+
+com.aionemu.gameserver.ai2.manager.AttackManager
+	#chooseAttack(NpcAI2, int) -- changed to public from protected so AI's can specify their own attack time interval without extending AttackManager
+
+com.aionemu.gameserver.ai2.manager.SkillAttackManager -- removed extra delay from #performAttack(NpcAI2, int).
+
+admincommands.Dispel -- modified to remove all buffs on Npc's as well.
+
+com.aionemu.gameserver.network.aion.clientpackets.CM_PING -- Added 98% tolerance for timer hack detection because this shit triggers without hacks on local clients
+
+com.aionemu.gameserver.skillengine.effect.StunAlwaysEffect -- added #calculate(Effect) override because this shit was stunning bosses.
+
+com.aionemu.gameserver.network.aion.clientpackets.CM_EMOTION -- players no longer return to non-combat stance when looting.
+
+com.aionemu.gameserver.ai2.NpcAI2 -- changed most convenience methods for getting aspects about the owner to final.
+	"Most" because some of them were overridden in a way that made sense, and instead of fixing it I will allow that sort of case.
+
+Begin rework process of AI's, many AI classes will be moved inside the server so they cannot be altered by the server owners directly.
+	For now these were just the base classes that most AI's are extended from.
+		GeneralNpcAI2
+		AggressiveNpcAI2
+		TrapNpcAI2
+	Eventually, ALL default AI's will be handled this way -- Any AI that is expected to be used under retail-like operation.
+	The current System of loading AI's from static scripts will remain for adding custom AI's to the server without needing to recompile.
+	Created com.aionemu.gameserver.ai2.ai.registration.DefaultAIRegistrationHandler.
+	com.aionemu.gameserver.ai2.AI2Engine -- Added support for DefaultAIRegistrationHandler.
+
+com.aionemu.gameserver.taskmanager.tasks.MoveTaskManager$TargetReachedManager -- modified to differentiate between TARGET_REACHED and MOVE_ARRIVED
+
+com.aionemu.gameserver.services.drop.DropService#closeDropList(Player, int) -- execution order changed to clean up the player state.
+
+com.aionemu.gameserver.ai2.AbstractAI -- Added methods for internal attack handling because the external method was poorly implemented and it should be internal anyway.
+	added #handleAttackIntention(AttackIntention, Creature)
+	added #handleSimpleAttackIntention(int, Creature)
+	added #handleSkillAttackIntention(int, Creature)
+	added #handleSkillBuffIntention(int, Creature)
+	added #onIntentionToAttack(Creature)
+	added #canUseSkill()
+
+com.aionemu.gameserver.ai2.AITemplate -- Added empty implementations of the following methods:
+	added #handleSimpleAttackIntention(int, Creature)
+	added #handleSkillAttackIntention(int, Creature)
+	added #handleSkillBuffIntention(int, Creature)
+
+com.aionemu.gameserver.ai2.manager
+	AttackManager -- deprecated methods that are being moved into direct AI handling.
+	SkillAttackManager -- deprecated methods that are being moved into direct AI handling.
+	SimpleAttackManager -- deprecated methods that are being moved into direct AI handling.
+
+com.aionemu.gameserver.model.stats.container.NpcGameStats#isNextAttackScheduled() and #setNextAttackTime() are now deprecated.
+
+com.aionemu.gameserver.ai2.ai.GeneralNpcAI2 reworked -- Implemented internal attack handling
+	The following methods were implemented to add this support:
+		#handleAttackIntention(AttackIntention, Creature),
+		#handleSimpleAttackIntention(int, Creature),
+		#handleSkillAttackIntention(int, Creature),
+		#handleSkillBuffIntention(int, Creature).
+	The following methods were modified to support this system:
+		#handleAttack(Creature),
+		#handleAttackComplete(),
+		#handleTargetReached(),
+		#handleTargetChanged(Creature),
+		#chooseAttackIntention().
+
+com.aionemu.gameserver.configs.main.AIConfig -- Added MAX_FIGHT_MOVE_WAIT_TIME field
+	Added appropriate line to `Server\AC-Game\config\main\ai.properties`
+
+com.aionemu.gameserver.ai2.ai.AggressiveNpcAI2#handleCreatureMoved(Creature) removed due to identical super handling.
+
+com.aionemu.gameserver.ai2.handler.TargetEventHandler#onTargetReached(NpcAI2) no longer supports FIGHT state, and no longer misuses recallPreviousStep() from the move controller
+
+com.aionemu.gameserver.ai2.handler.ThinkEventHandler#thinkAttack(NpcAI2)} no longer abuses the movement controller's recallPreviousPoint() method.
+
+ai.instance.danuarMysticarium.LegionMysticariumPortalAI2 -- removed unnecessary copy/paste of methods and extended the copied class.
+ai.instance.idgelResearchCenter.LegionIdgelPortalAI2 -- removed unnecessary copy/paste of methods and extended the copied class.
+ai.instance.voidCube.LegionVoidCubPortalAI2 -- removed unnecessary copy/paste of methods and extended the copied class.
+
+ai.instance.beshmindirTemple.DorakikiTheBoldAI2#handleAttackComplete() now calls super implementation to avoid a deprecated method call.
+
+com.aionemu.commons.utils.internal.chmv8.ForkJoinTask -- found some dead code; TODO: Investigate why someone killed it.
+
+com.aionemu.gameserver.network.aion.gmhandler.CmdAddSkill -- tweaked to remove the skill if used with a skill that exists already; it's a little buggy still.
+
+com.aionemu.gameserver.skillengine.properties.TargetRangeProperty -- Added special handling for Npc skills to check for attack range buffs.
+
+created com.aionemu.gameserver.ai2.ai.instance.fire_temple classes; Static data for intended use mobs has not been altered, yet.
+	BlueKalgolemAI2 -- AIName "ftbluekalgolem"
+	BlueObscuraAI2 -- AIName "ftblueobscura"
+	ChaliceGuardDenlavisAI2 -- AIName "ftchaliceguard"
+	GargoyleAI2 -- AIName "ftgargoyle"
+	InfernoFireSpiritAI2 -- AIName "ftlargefirespirit"
+	MercilessFireSpiritAI2 -- AIName "ftsmallfirespirit"
+	MugolemAI2 -- AIName "ftmugolem"
+	RedKalgolemAI2 -- AIName "ftredkalgolem"
+	RedObscuraAI2 -- AIName "ftredobscura"
+	CaryatidAI2 -- AIName "ftcaryatid"
+	BrokenWingKutisenAI2 -- AIName "ftkutisen"
+
+Changed static data for the following NPC's to use the above AI's
+	Blue Crystal Molgat -- 212839 (ftbluekalgolem)
+	Lava Gatneri -- 212840 (ftredkalgolem)
+	Flame Branch Flavi -- 212841 (ftredobscura)
+	Black Smoke Asparn -- 212842 (ftblueobscura)
+	Tough Sipus -- 212843 (ftmugolem)
+	Chalice Guard Denlavis -- 212878 (ftchaliceguard)
+	Broken Wing Kutisen -- 212845 (ftkutisen)
+	Inferno Spirit -- 212784, 212977 (ftlargefirespirit)
+	Merciless Fire Spirit -- 212873 (ftsmallfirespirit)
+	Blue Kalgolem -- 212785, 212789, 212790, 212793 (ftbluekalgolem)
+	Red Kalgolem -- 212786, 212792, 212794 (ftredkalgolem)
+	Gargoyle -- 212788, 212801, 212807, 214094, 214095, 214096 (ftgargoyle)
+	Mugolem -- 212787, 212802, 212803, 212806 (ftmugolem)
+	Blue Obscura -- 212795, 212796, 212797 (ftblueobscura)
+	Red Obscura -- 121798, 212799, 212800 (ftredobscura)
+	Caryatid -- 212808 (ftcaryatid)
+
+_______________________________________________________________________________________________________________________________________________________________________________
+
+com.aionemu.gameserver.network.aion.iteminfo.ManaStoneInfoBlobEntry -- modified colour values to the correct order.
+	Fixed an issue with item colours (previewing items should display the proper colour, now).
+
+com.aionemu.gameserver.network.aion.serverpackets.SM_NPC_INFO -- Added a temporary hack to display dead monsters as dead.
+	TO-DO: Fix this at CreatureState level.
+	Added a (still buggy) ~~hack~~ fix for reloading dead entities.
+
+Patched manager RAM options
+
+com.aionemu.gameserver.ai2.handler.TargetEventHandler#onTargetReached(NpcAI2) -- partially reverted removal of FIGHT state handling (attacking is still handled internally).
+	Fixed an issue where mobs would run off to oblivion and freeze up when aggroing a player while moving.
+
+quest.beluslan._2057GlacionttheHardy reworked
+	Made changes to the progression of Glaciont the Hardy.
+
+quest.beluslan._2061SuppressingtheBakarmaLegion modified to allow for completion of the quest
+	Fixed an issue preventing the completion of Suppressing the Bakarma Legion.
+		This issue may resurface in the future if we unnerf this quest.
+
+com.aionemu.gameserver.model.gameobjects.Item -- Updated database constructor so that it cannot throw null pointer exceptions.
+
+com.aionemu.gameserver.model.stats.container.NpcGameStats -- Deprecated methods/fields.
+	com.aionemu.gameserver.controllers.movement.NpcMoveController#moveToLocation(float, float, float, float) updated accordingly.
+
+com.aionemu.gameserver.network.aion.serverpackets.SM_TARGET_IMMOBILIZE -- Added a geoZ check for non player entities to avoid floating mobs.
+	Added an update check to mob altitude when they are stunned (mobs should appear to float in the air less often).
+
+com.aionemu.gameserver.controllers.movement.NpcMoveController#moveToLocation(float, float, float, float) -- changed geoZ value calculation.
+	Tweaked mob heights while moving.
+
+com.aionemu.gameserver.skillengine.effect.PulledEffect -- Changed the conditions upon which targets are moved, and added an abortMove() call in #startEffect(Effect).
+	Updated how entities are pulled with skills like IJ.
+
+com.aionemu.gameserver.world.geo.nav.NavService -- Added #canPullTarget(Creature, Creature) for checking if entities can pull one another.
+
+com.aionemu.gameserver.model.DialogAction#getActionByDialogId(int) changed to return {@link #NULL} instead of null if an action matching the passed in ID cannot be found.
+
+com.aionemu.gameserver.ai2.handler.TalkEventHandler -- Tweaked non-quest NPC handling to send DialogID 1011.
+	Fixed an issue where many NPC's would not display their lore dialogue.
+		This is still incomplete; NPC's that have a role in a quest (either currently or in the future) that you have not completed will not show this dialogue until the available quests are completed.
+
+com.aionemu.gameserver.questEngine.handlers.template.ItemCollecting -- tweaked #onDialogEvent(QuestEnv) to not send quest dialogue for SELECT_ACTION_1012 when the quest state is null or complete.
+	#onDialogEvent(QuestEnv) -- added a case for USE_OBJECT when starting quests.
+
+com.aionemu.gameserver.geoEngine.scene.NavGeometry#collideWith(Collidable, CollisionResults) -- Added Ray limit check to collisions.
+
+com.aionemu.gameserver.ai2.manager.AttackManager -- removed non-retail-like leash in #checkGiveupDistance(NpcAI2).
+	Tweaked how mobs determine when they need to reset.
+
+com.aionemu.gameserver.world.zone.ZoneLevelService#checkZoneLevels(Player) -- Added some exceptions to being below the water level.
+	Fixed an issue where the Player would drown while inside the Altgard Dungeon.
+
+com.aionemu.gameserver.skillengine.effect.SpinEffect -- inverted entity heading in #applyEffect(Effect)
+
+admincommands.NpcUtilty#finalizeWalker(Player, WalkerHolder, boolean) updated execution order
+
+com.aionemu.gameserver.controllers.movement.NpcMoveController#moveToDestination() -- added smooth turning for random walking NPC's
+	Added smooth turning for random walking NPC's (Not to Walkers)
+
+re-added several redundant checks when calling AI2Logger -- (they're faster in normal operation, not that it matters much)
+
+com.aionemu.gameserver.controllers.attack.AggroList -- Added multiple methods to retrieve various targets.
+
+com.aionemu.gameserver.skillengine.effect.AbnormalState -- Added MENTAL_STATE and STUN_LIKE_STATE
+
+Reimplemented com.aionemu.gameserver.model.templates.npcskill.NpcSkillTemplate.
+
+com.aionemu.gameserver.model.skill.NpcSkillEntry -- reworked to support new skill lists along with all subclasses.
+
+com.aionemu.gameserver.skillengine.condition.TargetFlyingCondition -- added {@link #check(Creature)} for new skill list support.
+
+com.aionemu.gameserver.ai2.manager.SkillAttackManager -- tweaked {@link #chooseNextSkill(NpcAI2)} to support new skill list.
+
+com.aionemu.gameserver.model.skill.NpcSkillList -- Renamed {@link #getRandomSkill()} to {@link #getNextSkill()} and reworked it to support new skill lists,
+	deprecated {@link #getUseInSpawnedSkill()},
+	{@link #getSkill(int)} changed to public,
+	added {@link #resetCounts()},
+	added {@link #getSkill(SkillIndex)}.
+
+com.aionemu.gameserver.ai2.handler.AttackEventHandler -- reset skill counts in {@link #onFinishAttack(NpcAI2)} for new skill list support.
+
+com.aionemu.gameserver.ai2.handler.DiedEventHandler -- added skill count reset to {@link #onSimpleDie(NpcAI2)}.
+
+Server\AC-Game\data\static_data\npc_skills\
+	npc_skills.xml -- re-parsed from retail build
+	npc_skills.xsd -- reworked to match new skill lists
+	Reworked NPC Skill lists.
+
+com.aionemu.gameserver.model.templates.npc.NpcTemplate -- Added {@link #mechanic} and {@link #getMechanic()}.
+
+Server\AC-Game\data\static_data\npcs\
+	npc_templates.xml -- re-parsed retail exp and speeds, added mechanic names.
+	npcs.xsd -- tweaked to add mechanic name
+	Tweaked NPC Templates and corresponding xsd file.
+
+Created com.aionemu.gameserver.ai2.mechanics package.
+	Implemented a new system for AI's that load behaviours from xml data.
+
+com.aionemu.gameserver.GameServer#main(String[]) -- Added a call to com.aionemu.gameserver.ai2.mechanics.AIMechanics#initialize().
+
+com.aionemu.gameserver.controllers.CreatureController
+	modified {@link #onAttack(Creature, int, TYPE, int, boolean, LOG)} and {@link #onDie(Creature)} to add special handling for Mechanics System.
+
+com.aionemu.gameserver.ai2.handler.AggroEventHandler$AggroNotifier -- added different handling for Mechanics System.
+
+com.aionemu.gameserver.controllers.NpcController -- added Mechanics System handling to {@link #onDie(Creature)} and {@link #useSkill(int, int)}.
+
+com.aionemu.gameserver.controllers.effect.EffectController -- modified {@link #setAbnormal(int)} and {@link #unsetAbnormal(int)} to support the Mechanics System.
+
+com.aionemu.gameserver.ai2.manager.WalkManager#chooseNextRandomPoint(NpcAI2) modified to add Mechanics System support.
+
+com.aionemu.gameserver.controllers.attack.AggroList#addHateValue(Creature, int) modified to support Mechanics System.
+
+com.aionemu.gameserver.skillengine.model.Skill -- Added Mechanics System support to {@link #endCast()}.
+	modified {@link #shouldAffectTarget(VisibleObject)} to not use terrain values for height comparisons.
+	Adjusted an oddity with how ground based skills validated targets.
+
+admincommands.Info -- updated info command to show mechanics system support.
+
+com.aionemu.gameserver.world.World -- fixed a race condition in {@link #despawn(VisibleObject, boolean)}.
+
+com.aionemu.gameserver.controllers.attack.AttackUtil
+	{@link #calculateMainHandResult(Creature, Creature, AttackStatus, int, List)} tweaked to no longer have more than one hit for Npc's,
+	{@link #splitPhysicalDamage(Creature, Creature, int, int, AttackStatus, List)} tweaked to make parrying less effective (damage reduction changed from 40% to 30%).
+	Removed excess attack updates for NPC's
+	Nerfed parrying from 40% damage reduction to 30%.
+
+com.aionemu.gameserver.ai2.manager.SimpleAttackManager#isTargetInAttackRange(Npc) altered to consider if the NPC is trying to use a skill or not (based on the AI's skillId).
+
+com.aionemu.gameserver.ai2.manager.SkillAttackManager -- set skill cd for NpcSkillEntry in {@link #afterUseSkill(NpcAI2)} (removed from {@link #chooseNextSkill(NpcAI2)}).
+
+com.aionemu.gameserver.ai2.handler.AggroEventHandler#onCreatureNeedsSupport(NpcAI2, Creature) tweaked to solve some oddities that've been hiding (they caused the client to behave oddly).
+	{@link #onGuardAgainstAttacker(NpcAI2, Creature)} as well.
+
+com.aionemu.gameserver.ai2.handler.ReturningEventHandler -- added handling to {@link #onNotAtHome(NpcAI2)} for when the entity cannot move.
+	Mobs can now teleport back to their spawn location when resetting.
+
+com.aionemu.gameserver.skillengine.effect.EffectTemplate -- commented out pull resistance for entities that cannot move in {@link #isImuneToAbnormal(Effect, StatEnum)}.
+	Mobs that cannot move are no longer immune to being pulled.
+
+com.aionemu.gameserver.model.gameobjects.player.PlayerCommonData -- changed declaration of {@link #lastOnline} to be 20 seconds in the past as opposed to 20ms.
+	New characters no longer have to wait 20 seconds to login.
+
+Altered ./data/static_data/quest_script_data/ishalgen.xml line 64 for Quest 2104 to allow both Vanar and Ungfu as quest turn-in NPCs.
+	Q2104 now allows for turn-ins at Vanar (awaiting client fix).
+
+com.aionemu.gameserver.questEngine.handlers.QuestHandler#sendQuestEndDialog(QuestEnv, int) altered to close the dialog window upon quest completion.
+	Many quest dialog windows should now properly close when the NPC has finished talking with the player.
+
+quest.ishalgen._2100OrderoftheCaptain -- Allowed the calls to {@link QuestEngine#onEnterZoneMissionEnd(QuestEnv)} in {@link #onDialogEvent(QuestEnv)} to run.
+	Updated how campaign quests in Ishalgen are added to the quest list.
+
+com.aionemu.gameserver.ai2.AbstractAI -- added {@link #isTargetInAttackRange(Creature)} for convenience (and replaced a call to SimpleAttackManager's version).
+
+com.aionemu.gameserver.ai2.ai.GeneralNpcAI2 -- replaced calls to SimpleAttackManager's isTargetInAttackRange(Npc) with calls to {@link #isTargetInAttackRange(Creature)}.
+
+com.aionemu.gameserver.utils.MathUtil -- tweaked {@link #isInAttackRange(Creature, Creature, float)} to add onto offset for moving entities (instead of assigning it to 3).
+	Adjusted range calculations for moving entities.
+
+Fully deprecated com.aionemu.gameserver.ai2.manager.SimpleAttackManager
+
+com.aionemu.gameserver.geoEngine.models.GeoMap
+	#getClosestCollision(float, float, float, float, float, float, boolean, boolean, int, byte) tweaked to be slightly less stupid when there aren't any collisions detected.
+
+com.aionemu.gameserver.skillengine.effect.DashEffect -- Changed skill positioning so the caster does not end up directly on top of the target.
+	Tweaked Dash skill calculations so they try to avoid placing the player directly ontop of the target.
+
+com.aionemu.gameserver.skillengine.model.Effect -- Copied some useful orphaned Javadoc to the class description.
+
+com.aionemu.gameserver.ai2.AISubState -- Added #FLEE
+
+com.aionemu.gameserver.controllers.CreatureController -- #onAttack(Creature, int, TYPE, int, boolean, LOG) changed to #onAttack(Creature, int, TYPE, int, boolean, LOG, AttackStatus)
+	Cascading effect on callers to add AttackStatus;
+		com.aionemu.gameserver.controllers.NpcController -- corrected override.
+		com.aionemu.gameserver.controllers.PlayerController -- corrected override.
+		com.aionemu.gameserver.controllers.SummonController -- corrected override.
+		com.aionemu.gameserver.skillengine.effect.BleedEffect#onPeriodicAction(Effect) -- used null value
+		com.aionemu.gameserver.controllers.attack.AttackUtil -- changed void methods to return AttackStatus
+			#calculateMagicalSkillResult(Effect, int, ActionModifier, SkillElement)
+			#calculateMagicalSkillResult(Effect, int, ActionModifier, SkillElement, boolean, boolean, boolean, Func, int, int, boolean, boolean)
+		com.aionemu.gameserver.skillengine.effect.DelayedSpellAttackInstantEffect#calculateAndApplyDamage(Effect) -- used result of previously void methods
+		com.aionemu.gameserver.controllers.observer.AttackShieldObserver#checkShield(List<AttackResult>, Effect, Creature) -- used status from AttackResult.
+		com.aionemu.gameserver.skillengine.effect.MagicCounterAtkEffect#startEffect(Effect)$skillUse(Skill)$run() -- used null value
+		com.aionemu.gameserver.skillengine.effect.SpellAttackEffect#onPeriodicAction(Effect) -- used null value
+		com.aionemu.gameserver.skillengine.effect.SpellAtkDrainEffect#onPeriodicAction(Effect) -- used null value
+		com.aionemu.gameserver.skillengine.effect.ProcAtkInstantEffect#applyEffect(Effect) -- used null values
+		com.aionemu.gameserver.skillengine.effect.PoisonEffect#onPeriodicAction(Effect) -- used null value
+		com.aionemu.gameserver.controllers.CreatureController
+			#onAttack(Creature, int, int, boolean, AttackStatus)
+			#onAttack(Creature, int, boolean, AttackStatus)
+			#attackTarget(Creature, int) -- used first status in AttackResult list, modified $DelayedOnAttack to support this
+		com.aionemu.gameserver.skillengine.effect.DamageEffect.applyEffect(Effect) -- used null value
+	****admincommands.Damage -- used null values
+	****admincommands.Kill -- used null values
+	****quest.beluslan._2061SuppressingtheBakarmaLegion -- used null value
+	****ai.instance.steelRose.RoseArtilleristAI2#cannonAttack(Creature) -- used null value
+	****ai.instance.voidCube.CubeDoorAI2#handleCreatureAggro(Creature) -- used null value
+	****instance.danuar_reliquary.DanuarReliquaryInstance#onDie(Npc) -- used null values
+	****ai.instance.danuarReliquary.ModorCloneAI2#spawnSorcererQueenModor() -- used null value
+	****ai.instance.argentManor.ZadraSpellweaverAI2#handleCreatureMoved(Creature)$run() -- used null value
+	****instance.InfinityShardInstance#stopInstance() -- used null value
+
+com.aionemu.gameserver.world.WorldMapInstance -- Added {@link #flagvars}, and corresponding methods
+	{@link #setWorldFlagvar(FlagvarIndicator)}
+	{@link #unsetWorldFlagvar(FlagvarIndicator)}
+	{@link #isWorldFlagvar(FlagvarIndicator, boolean)})
+
+com.aionemu.gameserver.network.aion.serverpackets.SM_INSTANCE_STAGE_INFO -- Added another constructor for mechanics system.
+
+Added a new config line to ai.properties; Added config to turn mechanics system off.
+
+_______________________________________________________________________________________________________________________________________________________________________________
+
+com.aionemu.gameserver.controllers.PlayerController#validateLoginZone() -- removed return to bindpoint in no recall locations until a better solution is found.
+	Fixed an issue that resulted in players being returned to their bindpoint in cases they should not have been.
+
+com.aionemu.gameserver.ai2.manager.AttackManager -- Changed the 20s reset timer down to 10s
+	Tweaked how long it takes for mobs to give up chasing their target.
+
+com.aionemu.gameserver.network.aion.clientpackets.CM_HOTSPOT_TELEPORT -- added special handling for cancel packet (sent when client is interrupted).
+
+Added chained questing functionality for 725 quests.
+	com.aionemu.gameserver.questEngine.handlers.QuestHandler
+		#defaultCloseDialog(QuestEnv, int, int, boolean, boolean, int, int, int, int, int, int) altered to close the dialog window.
+		#sendQuestEndDialog(QuestEnv, int) altered to check for chained quests.
+	
+	Added com.aionemu.gameserver.model.templates.ConnectedQuestTemplate
+	
+	Added com.aionemu.gameserver.dataholders.QuestConnectionsData
+	
+	com.aionemu.gameserver.dataholders.StaticData -- Added {@link #questConnectionData}.
+	
+	com.aionemu.gameserver.dataholders.DataManager -- Added {@link #QUEST_CONNECTIONS_DATA}.
+	
+	Modified/Added Data Files:
+		AC-Game\data\static_data\static_data.xml
+		AC-Game\data\static_data\static_data.xsd
+		AC-Game\data\static_data\quest_data\connected_quests.xml
+		AC-Game\data\static_data\quest_data\connected_quests.xsd
+
+com.aionemu.gameserver.network.aion.serverpackets.SM_NPC_INFO -- Removed temporary hack to display dead monsters as dead.
+	Removed temporary hack to display dead monsters as dead.
+
+The following no longer keep the quest dialog page open (Modified Quest Handlers):
+	quest.altgard
+		_2266ATrustworthyMessenger
+		_2279SolidProof
+		_2278ASecretProposal
+		_2020KeepingtheBlackClawTribeinCheck
+		_2247TheGergersDisguise
+		_2239MalodorAntidote
+	quest.pandaemonium._2917ArekedilsHeritage
+	quest.ishalgen
+		_2114TheInsectProblem
+		_2135ForLoveofNegi
+		_2002WheresRae
+	Prevented many quests from leaving the chat window open.
+
+quest.altgard
+	_2284EscapingAsmodae -- Added a missing dialog page.
+	_2021KnowYourEnemy -- Reworked to be less nerfed, added missing CS
+	Tweaked the progression of Q2284 and Q2021
+
+com.aionemu.gameserver.controllers.attack.AttackUtil
+	{@link #calculateSkillResult(Effect, int, ActionModifier, Func, int, int, int, int, boolean, boolean, boolean, boolean)} tweaked to have
+		a less effective parry (DR from 40% to 30%) and to not allow returning 0 damage unless the attack was dodged.
+	{@link #splitPhysicalDamage(Creature, Creature, int, int, AttackStatus, List)} tweaked to not allow 0 damage unless the attack was dodged
+
+com.aionemu.gameserver.spawnengine.TemporarySpawnEngine
+	{@link #spawnAll()} modified to call {@link #despawn()} for admins using the //time command.
+	Reworked to use {@link SpawnGroupHolder} within the internal data structure.
+	Fixed an issue with Temporary Spawns.
+
+com.aionemu.gameserver.model.templates.spawns.SpawnTemplate
+	{@link #setVisibleObject(VisibleObject)} refactored to {@link #addVisibleObject(VisibleObject, int)}.
+	reworked the class to store multiple VisibleObjects, as these templates are not being treated exclusively as they should be.
+
+admincommands.NpcUtility updated to reflect new behaviours for SpawnTemplates.
+
+Updated the Server Manager
+
+_______________________________________________________________________________________________________________________________________________________________________________
+
+com.aionemu.gameserver.utils.rates
+	RegularRates, PremiumRates, and VipRates converted to package and final classes
+	Rates modified to store a single static instance of each type of rate to save on memory.
+
+playercommands.cmd_drop -- Added a distinction between category-based drop groups and non-category-based drop groups.
+	Tweaked the `.drop` command.
+
+com.aionemu.gameserver.services.HousingBidService -- Prevented a couple of NullPointerException possibilities within {@link #executeTask()}.
+	#loadBidData() -- added an assertion when HouseBidEntries are created.
+	#executeTask() -- Corrected the kinah amount given to the player upon sale of their house.
+	#removeHouseFromAuction -- local variable lastPlayer changed from type Integer to type int, any leftover player bids removed from #playerBids.
+	#placeBid(Player, int, long) -- changed old bid handling so the database can properly update.
+	Fixed a few issues with player housing.
+
+com.aionemu.gameserver.controllers.FlyController -- {@link #onStopGliding(boolean)} now checks if the player is in a flight zone before
+	returning them to normal flying... forcibly ending their flight if they are not.
+
+com.aionemu.gameserver.model.house.HouseBidEntry -- added {@link #getInitialBidPrice()}, {@link #setInitialBidPrice(long)}, and {@link #initialBidPrice}.
+	maintained contract of {@link #Clone()}
+	{@link #getRefundKinah()} altered to use a hardcoded 30% modifier instead of the housing config BID_REFUND_PERCENT
+
+Added a new HousingConfig option, along with the change to AC-Game/config/main/housing.properties to reflect the addition.
+	Added a new housing config to disable the limits on the number of houses for sale
+
+com.aionemu.gameserver.questEngine.handlers.models.ItemCollectingData -- changed XmlAttribute names of start dialog id values back to what the xsd file claims it should be.
+
+com.aionemu.gameserver.questEngine.handlers.models.ReportToManyData -- changed XmlAttribute name of start dialog back to what the xsd file claims it should be.
+
+AC-Game\data\static_data\quest_script_data\pandaemonium.xml updated to fix an issue with Q4912
+	Tweaked the progression of Q4912
+
+com.aionemu.gameserver.skillengine.effect.AbnormalState -- renamed {@link #UNKNOWN} to {@link #SANCTUARY}, and added it to some of the combined states.
+	Implemented the Sanctuary altered state.
+
+com.aionemu.gameserver.skillengine.effect.SanctuaryEffect -- Implemented empty start and end effect methods.
+
+mysql5.MySQL5PlayerSkillListDAO -- Added the exceptions to the error logging messages in
+	{@link #store(Player, List)}
+	{@link #addSkills(Connection, Player, List)}
+	{@link #deleteSkills(Connection, Player, List)}
+	{@link #updateSkills(Connection, Player, List)}
+	Changed {@link #skillsToDeletePredicate} to also accept NEW skills as a precaution.
+
+com.aionemu.gameserver.controllers.effect.EffectController
+	{@link #isAbnormalState(AbnormalState)} tweaked to return true if any of the abnormal states of the compounded state are set.
+
+_______________________________________________________________________________________________________________________________________________________________________________
+
+The following no longer keep the quest dialog page open (Modified Quest Handlers):
+	quest
+		altgard
+			_24014StompOutThePlot
+		beluslan
+			_2052AnUndeadOccupation
+			_2054LightuptheLighthouse
+			_2056ThawingKurngalfberg
+			_2059APeaceOffering
+			_2061SuppressingtheBakarmaLegion
+			_24052AFrozenCity
+			_24053TheMaulingOfTheMau
+			_2501FallingFragments
+			_2505LetCookingExpertsCook
+			_2512FoodforRemotePlaces
+			_2513TheStrangeCottage
+			_2514TheRedManeReport
+			_2515LeanorsErrand
+			_2523GrassfortheGraveRobbers
+			_2538CurseoftheWereRibbit
+			_2539TrystoftheShadow
+			_2553TheBrigadeGeneralsCall
+			_2564WiththePowerofFlame
+			_2569TafisFlameScroll
+			_2578ARingforLuck
+			_2583APoliteRequest
+			_2600HumongousMalek
+			_2611ConsultingtheLeaders
+			_2620SummoningPhagrasul
+			_2633DestroyingBalaurWeapons
+			_2641PowwowWiththeMau
+			_2646TheInscrutableStranger
+			_2653SpyFindingBollvig
+			_2663AcquiringanAntidote
+			_2670TheAncientBook
+			_2692BrokenMusicBox
+			_2693KrallGoneMad
+			_4200ASuspiciousCall
+			_4501DelayedOrder
+		beshmundir
+			_30202SuspiciousCeremony
+			_30302MysteriousMotives
+		brusthonin
+			_2092GravesoftheRedSkyLegion
+			_2094TheSecretofAdmaStronghold
+			_4001CheckontheSettlers
+			_4011AnOldSettlersLetter
+			_4020ParicasSpecialOrder
+			_4033ABloominBrusthonin
+			_4036HeirnirWantstoRest
+			_4042MessageinaBottle
+			_4051BukmirsWorry
+			_4052BukmirsOldFriend
+			_4053GlossyHoe
+			_4060TheZombiesDescendant
+			_4101ElimofBrusthonin
+		carving_fortune
+			_2097SpiritBlade
+			_2098ButWhatweMake
+		cloister_of_kaisinel
+			_10000LavirintosCall
+			_10001BoundOfInggison
+		convent_of_marchutan
+			_20000VidarsCall
+			_20001TravelingtoGelkmaros
+		crafting
+			_19002ExpertAethertappersTest
+			_19008MasterWeaponsmithsPotential
+			_19014MasterArmorsmithsPotential
+			_19020MasterTailorsPotential
+			_19026MasterHandicraftersPotential
+			_19032MasterAlchemistsPotential
+			_19057MasterConstructorsPotential
+			_29002ExpertAethertappersTest
+			_29008MasterWeaponsmithsPotential
+			_29014MasterArmorsmithsPotential
+			_29020MasterTailorsPotential
+			_29026MasterHandicraftersPotential
+			_29032MasterAlchemistsPotential
+			_29057MasterConstructorsPotential
+		daevation
+			_1988AMeetingWithASage
+			_1989ASagesTeachings
+			_2988TheWiseInDisguise
+			_2989CeremonyOfTheWise
+			_2990MakingTheDaevanionWeapon
+		danaria
+			_13051Helpfortheisolated
+			_13054MyReportIsBetter
+			_23028PreparationfortheMajorOffensive
+			_23049Phonsmissingsister
+			_23054AndBusinessIsGood
+			_23561ThoroughSenseofJustice1
+		eltnen
+			_1032ARulersDuty
+			_1036KaidanPrisoner
+			_1043BalaurConspiracy
+			_1314Anelimoutofwater
+			_1319PrioritesMoney
+			_1322ALeafFromLodas
+			_1324ConfidentialOrders
+			_1363ThankingMabangtah
+			_14023PlayingAroundAtTheTemple
+			_14024AKrallingSuspicion
+			_14025CookingUpDisasters
+			_14026ALoneDefense
+			_1422ABetterSword
+			_1452DoubtfulCharacters
+			_1463MessageToASpy
+			_1467TheFourLeaders
+			_1469FindingDenlavis
+			_1471FakeStigma
+			_1472GanimerksEspionage
+			_1482ATeleportationAdventure
+			_1483HarumonerksRequest
+			_1484ChiyorinrinerksRequest
+			_3319AnOrderforGojirunerk
+		esoterrace
+			_18407GroupDrakanJournalism
+			_18409GroupTiamatsPowerUnleashed
+			_18410PursuingthePrisoners
+		gelkmaros
+			_20022SpreadingAsmodaesReach
+			_20023KumbandasWhereabouts
+			_20025QuestForSielsRelics
+		greater_stigma
+			_30217GroupStigmasScars
+			_30317GroupSpiritsandStigmaSlots
+			_3930SecretoftheShatteredStigma
+			_3931HowToUseStigma
+			_3932StopTheShulacks
+			_4934TheShulacksStigma
+			_4935ABookletOnStigma
+			_4936SecretOfTheGreaterStigma
+		heiron
+			_1051TheRuinsofRoah
+			_1052RootoftheRot
+			_1053TheKlawThreat
+			_1055EternalRest
+			_1056LepharistPoisonResearch
+			_1057CreatingaMonster
+			_1058AetherInsanity
+			_1059TheArchonofStorms
+			_1062IndratuLegion
+			_14051RootOfTheProblem
+			_14052RestlessSouls
+			_14053DangerCubed
+			_14054KrallingToKralltumagna
+			_1527RottenRotrons
+			_1528StrangeLeather
+			_1535TheColdColdGround
+			_1553MirrorMirror
+			_1559WhatsintheBox
+			_1560AJobForPobinerk
+			_1574AFeatForAVillage
+			_1578WhereDoRotronsComeFrom
+			_1605TheLepharistSituation
+			_1609MessageToArbolusHaven
+			_1620StartSpreadingTheNews
+			_1628MeteriasRegret
+			_1643TheStarOfHeiron
+			_1691TheLittleLeatherSlipper
+			_18600ScoringSomeBadStigma
+			_3200PriceOfGoodwill
+		hero
+			_13527OldSpiritsOldGrudges
+			_13531OldHabitsDieHard
+			_23527OldSpiritsOldGrudges
+			_23531MoreSpiritsMoreGrudges
+		hidden_truth
+			_1096APastMission
+			_1097SwordofTranscendence
+		inggison
+			_10022SupportTheInggisonOutpost
+			_10026SecretOfInggison
+			_11000WisplightMoralTour
+			_11001KindMeira
+			_11005TheLimitsofGenius
+			_11008LetterOfEncouragement
+			_11009MeiriaFriendlySuggestion
+			_11012PracticalNursing
+			_11026SolidEvidence
+			_11031CanIEatIt
+			_11032EverythingsBetterWithTentacles
+			_11033YouMakeMeSick
+			_11068AMysteriousWind
+			_11069MookieTravelTips
+			_11070CraftyMessenger
+			_11072DelusCulinaryVictim
+			_11105WifesNagging
+			_11106RewritingHistory
+			_11107ComfortisaBox
+			_11109TheNegotiators
+			_11116MunchingMookiePickles
+			_11117MedicationforSetzkiki
+			_11118MakingSetzkikiLaugh
+			_11139TheBadNews
+			_11455WhentheTimeisRipe
+			_11458AdiassReport
+			_14060TheLandOfIde
+		ishalgen
+			_2003TreasureOfTheDeceased
+			_2005TeachingaLesson
+			_2114TheInsectProblem
+			_2125TheRobberyPlot
+		katalam
+			_12854ObjectiveBasedBaseObjectives
+			_12855GloryForAll
+			_22854KeepWhatYouKill
+			_22855AsmodianGlory
+		morheim
+			_2031PetrifyingElim
+			_2035TheThreeKeys
+			_2036ACaptiveFlame
+			_2037TheProtectorofNepra
+			_2039AlliesAmongEnemies
+			_2040KikanantasLoyalty
+			_2307IrresistibleSoup
+			_2321SpyTheSpiritsLetter
+			_24023ABlazingRescue
+			_24026AHandFromEachSide
+			_2421AsgeirrsRequest
+			_2428TheAbsolutelyEssentialBook
+			_2458RoastGadillForAFriend
+			_2480ElimOfElysea
+			_2482CaryatidOfAbyss
+		pandaemonium
+			_2912FollowtheRibbon
+			_2913AChainofDebt
+			_2914ATokenofLostLove
+			_2917ArekedilsHeritage
+			_2928PowerofLove
+			_2965AncientWeapons
+		poeta
+			_1001TheKerubThreat
+			_1003IllegalLogging
+			_1111InsomniaMedicine
+			_1114TheNymphsGown
+			_1118PoliniasOintment
+			_1122DeliveringPernossRobe
+		raksang
+			_18710TippingtheScales
+			_28710ScalingRewards
+		reshanta
+			_1071SpeakingBalaur
+			_1072AbyssTraining
+			_1074FragmentofMemory
+			_1075NewWings
+			_1077FragmentofMemory3
+			_14041AbyssalAbilities
+			_14043DrawlingBalaur
+			_14044ShardsOfMemory
+			_14047ChainingMemories
+			_1718TradingDown
+			_1721MeetingwiththeBrigadeGeneral
+			_1722RastinsHomesickness
+			_1724ReaperExpertise
+			_1725CenturionsForgetfulness
+			_1726ScoutingtheLake
+			_1727RecruitsforNezekansShield
+			_1777CalloftheGovernor
+			_1798JakurerksShotattheBigTime
+			_1799PupilsDiary
+			_1845OpeningDoors
+			_1846PaperTrail
+			_1847AStrangeSoul
+			_2072AbyssBattleTraining
+			_2075PuttingontheSpeed
+			_24041TrainingInTheAbyss
+			_24045ASpeedyErrand
+			_2718TradingDown
+			_2721MeetingWithTheBrigadeGeneral
+			_2722TheComfortsofHome
+			_2724MissingInAction
+			_2727TransparentMotives
+			_2767AFruitfulPartnership
+		sanctum
+			_1901KrallicPotion
+			_1928ChasingaCriminal
+			_1935TissueIDontEvenKnowYou
+			_1937ALepharistMonstrosity
+			_3210RescueHaorunerk
+			_3913ASecretSummons
+			_3966SaluteANewUniform
+			_3967AndusDyeBox
+			_3968PalentinesRequest
+			_3969SexiestManAlive
+		sarpan
+			_10050SomethingToProve
+		silentera_canyon
+			_30155StonetoFlesh
+		theobomos
+			_1093TheCalydonRuins
+			_3001UnearthingtheTruth
+			_3006TheShugoFugitive
+			_3008WickedThiefKelaino
+			_3013AClueLeftByTheDead
+			_3018ForkEarRokes
+			_3019BlackWidow
+			_3020AgrintAfire
+			_3023TheSpiceMustFlow
+			_3035EnhancingtheStone
+			_3037WanderersStaff
+			_3056InSearchOfZirius
+			_3058StoneofMabolo
+			_3060TheRedJournal
+			_3076BolsteringtheAethericField
+			_3081VisitingtheLibrary
+			_3083SearchingfortheElderofWisdom
+			_3085TheRiddlePoem
+			_3091TheLostDrakie
+			_3093RecetteSecretedeQuenelles
+			_3095ADecisiveClue
+			_3100AShugosBestFriend
+		verteron
+			_1013HuntingLepharistRevolutionaries
+			_1014OdiumintheDukakiSettlement
+			_1015FrillneckHunt
+			_1017HeldSacred
+			_1021TrandilasEggs
+			_1022KrallDesecration
+			_1131UndeliveredArmor
+			_1162AltenosWeddingRing
+			_1163ArachnaAntidote
+			_1183SpiritOfNature
+			_1192VerteronReinforcements
+			_1218NumonerksDemandNote
+			_1220ASecretDelivery
+
+com.aionemu.gameserver.questEngine.handlers.QuestHandler
+	added {@link #defaultCloseDialog(QuestEnv, int, int, boolean)}
+	added {@link #defaultCloseDialog(QuestEnv, int, int, boolean, int, int, int, int)}
+
+com.aionemu.gameserver.model.gameobjects.Npc
+	removed {@link #isQuestBusy} and related methods ({@link #getIsQuestBusy()}, {@link #setIsQuestBusy(boolean)}).
+	altered {@link #getType(Creature)} to consider overrides from super.
+
+quest.altgard._2252ChasingtheLegend -- Removed QuestBusy support, allowed for the quest to be completed.
+	Altered the progression of Q2252.
+
+ai.ActionItemNpcAI2 -- removed support for QuestBusy Npc's.
+
+com.aionemu.gameserver.model.templates.npc.NpcTemplate -- deprecated {@link #floatcorpse}, and its getter.
+
+com.aionemu.gameserver.network.aion.serverpackets.SM_NPC_INFO
+	Added handling for a formerly unknown byte value to show if the player receiving the packet has loot on the Npc
+	adjusted how the entity's %HP is written.
+
+com.aionemu.gameserver.network.aion.serverpackets.SM_ATTACK -- Changed how HP percentage is sent to the client.
+
+com.aionemu.gameserver.controllers.CreatureController
+	altered {@link #onDie(Creature)} and {@link #onDieSilence()} to no longer set {@link CreatureState#FLOATING_CORPSE} for Npc's unless it was flying.
+
+com.aionemu.gameserver.services.drop.DropService -- deprecated {@link #see(Player, Npc)} as it's handled in SM_NPC_INFO.
+
+com.aionemu.gameserver.controllers.NpcController -- removed deprecated handling in {@link #see(VisibleObject)}.
+
+com.aionemu.gameserver.model.stats.container.CreatureLifeStats -- {@link #getHpPercentage()} tweaked slightly.
+
+com.aionemu.gameserver.model.gameobjects.Creature -- added {@link #setType(CreatureType)}.
+
+Added a config to AC-Game/config/main/geodata.properties to control how often Z-values are validated.
+	@@@ BEFORE THE PATCH @@@@
+		Configure the rest of the geodata settings, else the test server will lose some config settings.
+
+Created com.aionemu.gameserver.network.aion.clientpackets.CM_QUESTION_ACCEPT_SUMMON_RESPONSE
+	Added it to com.aionemu.gameserver.network.factories.AionPacketHandlerFactory
+
+Created com.aionemu.gameserver.network.aion.serverpackets.SM_QUESTION_WINDOW_ACCEPT_SUMMON
+	Added it to com.aionemu.gameserver.network.aion.ServerPacketsOpcodes
+
+com.aionemu.gameserver.network.aion.serverpackets.SM_LEGION_MEMBERLIST -- Now sends GS Id so players see the proper region in the legion window.
+
+com.aionemu.gameserver.services.player.PlayerEnterWorldService -- adjusted some hardcoded values to use server configs.
+
+com.aionemu.gameserver.network.aion.serverpackets.SM_PLAYER_SPAWN -- Added a check for FTS config
+
+com.aionemu.gameserver.network.aion.serverpackets.SM_LEGION_UPDATE_MEMBER -- Added server ID to packet so players appear in the list correctly.
+	Adjusted how legion member information is sent to the client.
+
+com.aionemu.gameserver.controllers.attack.AttackUtil
+	{@link #splitPhysicalDamage(Creature, Creature, int, int, AttackStatus, List)} tweaked to prevent dodging from having 1 damage (old approach failed in this regard).
+
+com.aionemu.gameserver.controllers.movement.NpcMoveController -- revisited the algorithm for smooth turning Npc's.
+
+com.aionemu.gameserver.model.stats.container.CreatureGameStats refactored
+	{@link #checkHPStats()} and {@link #checkMPStats()} into {@link #checkHPStats(boolean)} and {@link #checkMPStats(boolean)}
+	{@link #onStatsChange()} to {@link #onStatsChange(boolean)}
+	{@link #endEffect(StatOwner)} to {@link #endEffect(StatOwner, boolean)}
+	@@@ Had to adjust script data @@@
+		admincommands.Motion
+		admincommands.Speed
+	Tweaked the HP exploit fix.
+
+com.aionemu.gameserver.model.stats.container.NpcGameStats -- added a call to super within {@link #onStatsChange(boolean)}.
+
+com.aionemu.gameserver.model.stats.container.SummonGameStats -- added a call to super within {@link #onStatsChange(boolean)}.
+
+_______________________________________________________________________________________________________________________________________________________________________________
+
+com.aionemu.gameserver.network.aion.serverpackets.SM_CASTSPELL_RESULT -- Adjusted how entities' %HP is written.
+
+quest._9999QuestHandlerTemplate -- Left a note about not keeping the Npc dialogue open.
+
+The following no longer misuse the sendQuestSelectionDialog(QuestEnv) method:
+	quest
+		abyss_entry
+			_1044TestingFlightSkills
+			_1922DeliveronYourPromises
+			_2042TheLastCheckpoint
+		altgard
+			_2012Encroachers
+			_2014ScoutitOut
+			_2017TrespassersattheObservatory
+			_2208MauInTenMinutesADay
+			_2223AMythicalMonster
+			_2230AFriendlyWager
+			_2232TheBrokenHoneyJar
+			_2288MoneyWhereYourMouthIs
+			_2289RampagingMosbears
+			_2290GrokensEscape
+			_24112NoLaissezFaireForLepharists
+		ascension
+			_1007ACeremonyinSanctum
+			_2009ACeremonyinPandaemonium
+		beluslan
+			_2060RestoringBeluslanObservatory
+			_4502EssenceOfFate
+		brusthonin
+			_4038AlasPoorGroznak
+			_4074GainOrLose
+		crafting
+			_19000ExpertEssencetappersTest
+			_19038MasterCooksPotential
+			_29038MasterCooksPotential
+		daevation
+			_1990ASagesGift
+		elementis_forest
+			_30401AllForAStone
+		eltnen
+			_1033SatalocasHeart
+			_1035RefreshingtheSprings
+			_1037SecretsoftheTemple
+			_1038TheShadowsCommand
+			_1042KeeperoftheKaidanKey
+			_1371FlowersForIsson
+			_1468HannetsLostLove
+		fenris_fang
+			_4938WorkOfTheFenrisFangs
+			_4939ProvingGround
+			_4942ProvingProficiency
+			_4943LuckandPersistence
+			_4944LoyaltyAndAffableness
+		gelkmaros_armor
+			_21051TroubleinStone
+			_21052DragonHuntin
+			_21053DramataDrama
+		gelkmaros
+			_20020CrashoftheDredgion
+			_20021TheAetherMustFlow
+			_20024BattlesAtVorgaltem
+			_24061UntanglingTalocsHollow
+		greater_stigma
+			_21277OutoftheirColdDeadHands
+		heiron
+			_1054ThePowerofElim
+			_1636AFluteForTheFixing
+		inggison
+			_10021FriendsForLife
+			_10024WillTheAetherRain
+			_14061HolyProblems
+		ishalgen
+			_2001ThinkingAhead
+			_2004ACharmedCube
+			_2006HitThemWhereitHurts
+			_2007WheresRaeThisTime
+			_2123TheImprisonedGourmet
+		miragent_holy_templar
+			_3933ClassPreceptorConsent
+			_3934TheQuestForTemplars
+			_3935ShoulderTheBurden
+			_3938WellRounded
+			_3939PersistenceAndLuck
+			_3940Loyalty
+		morheim
+			_2032GuardianSpirit
+			_2303DaevaWheresMyHerb
+			_24021GhostsInTheDesert
+			_2422LiquorThatMakesYouVanish
+			_2430SecretInformation
+		poeta
+			_1002RequestoftheElim
+			_1004NeutralizingOdium
+			_1005BarringtheGate
+		reshanta
+			_14045RumorsOnWings
+		shugo_imperial_tomb
+			_80276ImportantLetter
+			_80277TheSameThingWeDo
+		theobomos
+			_3074DangerousProbability
+		verteron
+			_1016SourceOfThePollution
+			_1146DelicateMandrake
+			_1152OdellaRecipe
+
+com.aionemu.gameserver.questEngine.handlers.QuestHandler
+	Removed unused #sendItemCollectingStartDialog(QuestEnv).
+	corrected misuse of {@link #sendQuestSelectionDialog(QuestEnv)} in {@link #sendQuestStartDialog(QuestEnv, int, int, int)}.
+
+Corrected misuse of {@link #sendQuestSelectionDialog(QuestEnv)} in {@link #onDialogEvent(QuestEnv)} for
+	com.aionemu.gameserver.questEngine.handlers.template
+		ItemCollecting
+		ReportTo
+
+com.aionemu.gameserver.world.MapRegion -- Added {@link #checkActiveness()} and {@link #siegeActivate()}.
+
+com.aionemu.gameserver.services.siegeservice.FortressAssault -- Activated the siege region when spawning attackers (and checked to deactivate on assault finish).
+	Fixed an issue where Sieges would start, but the mobs would ignore the Siege until a player was nearby.
+
+com.aionemu.gameserver.skillengine.properties.FirstTargetRangeProperty -- Added an exception to NPC's finishing their cast so they don't need to be in range or have LoS.
+	Tweaked how NPC's finish casting their skills.
+
+com.aionemu.gameserver.controllers.movement.NpcMoveController -- Tweaked the last point in the cached pathfinding path so NPC's no longer stack on eachother.
+	Adjusted the last step of mob pathfinding so they randomly spread out a little; this is not implemented properly, so it may be a little buggy.
+
+com.aionemu.gameserver.services.item.ItemSocketService -- {@link #addFusionStone(Item, int)} no longer wrongly attempts to update the database.
+	Fixed an issue where manastones were not being updated in the database properly.
+
+com.aionemu.gameserver.model.gameobjects.player.Equipment -- changed {@link #soulBindItem(Player, Item, long)} so it plays the ending animation of soul binding properly.
+	Adjusted how the soul binding animation trigger is sent to the client.
+
+com.aionemu.gameserver.network.aion.serverpackets.SM_ITEM_USAGE_ANIMATION -- added {@link #transitionalAnimation} and {@link #SM_ITEM_USAGE_ANIMATION(int, int, int, int, int, boolean)}.
+
+com.aionemu.gameserver.controllers.attack.AggroList -- added {@link #getOrderedList(OrderIndicator)} to support the Mechanics System.
+
+com.aionemu.gameserver.ai2.AISubState -- added {@link #WALK_ALIAS}.
+
+com.aionemu.gameserver.controllers.movement.NpcMoveController
+	Deprecated (soon to remove) {@link #lastSteps}, {@link #stepSequenceNr}, {@link #storeStep()}, {@link #recallPreviousStep()}, {@link #clearBackSteps()};
+		removed deprecated method calls
+			com.aionemu.gameserver.ai2.ai.GeneralNpcAI2
+			com.aionemu.gameserver.ai2.handler
+				CreatureEventHandler
+				ReturningEventHandler
+				SimpleAbyssGuardHandler
+				TargetEventHandler
+	added {@link #moveToAlias(Alias)}, and {@link #moveToHome()}.
+
+com.aionemu.gameserver.controllers.effect.EffectController -- refactored {@link #setAbnormal(int)} to {@link #setAbnormal(int, Creature)} for Mechanics System support.
+	Fixed Resulting Compile Errors:
+		com.aionemu.gameserver.services.ecfunctions.oneVsone
+			OneVsOneService
+			ArenaMasterService
+		com.aionemu.gameserver.network.aion.gmhandler.CmdInvisible
+	****ai.instance.padmarashkasCave.PadmarashkaAI2
+	****ai.instance.darkPoeta.SpallerEchtraAI2
+	****playercommands
+			Ffa
+			cmd_unstuck
+	****admincommands.Invis
+		com.aionemu.gameserver.services.player.PlayerEnterWorldService
+		com.aionemu.gameserver.skillengine.effect
+			AbstractOverTimeEffect
+			BindEffect
+			BlindEffect
+			BuffSleepEffect
+			CurseEffect
+			DiseaseEffect
+			FearEffect
+			HideEffect
+			NoFlyEffect
+			OpenAerialEffect
+			ParalyzeEffect
+			PulledEffect
+			RootEffect
+			SanctuaryEffect
+			SilenceEffect
+			SimpleRootEffect
+			SleepEffect
+			SlowEffect
+			SnareEffect
+			SpinEffect
+			StaggerEffect
+			StumbleEffect
+			StunAlwaysEffect
+			StunEffect
+			TransformEffect
+
+com.aionemu.gameserver.network.aion.clientpackets.CM_CHAT_MESSAGE_PUBLIC
+	{@link #broadcastToNonBlockedRacePlayers(Player)} no longer hardcodes "Unknow Message" for the enemy faction.
+	Tweaked how chat from the opposite faction is sent to players.
+
+Changed administration configs: admin.properties, and commands.properties.
+
+com.aionemu.gameserver.skillengine.effect.RecallInstantEffect -- Corrected the system message sent to the summoned player when they decline the summon request.
+
+The following now prompt the user to accept a summoning instead of forcing them to teleport.
+	admincommands
+		MoveToMe
+		GroupToMe
+		MovePlayerTo
+		MovePlayerToPlayer
+
+added admincommands.ForcedMove.
+
+com.aionemu.gameserver.model.stats.container.NpcGameStats -- added {@link #adjustLastAttackTimeBy(int)} for the sanctuary effect.
+
+com.aionemu.gameserver.services.item.ItemRemodelService -- added {@link #checkSkinCompatibility(Item, Item)} and allowed for downwards skinning via config.
+
+Added Custom Config DOWNWARDS_ITEM_REMODEL with key "gameserver.player.item.remodel.downwards"
+
+_______________________________________________________________________________________________________________________________________________________________________________
+
+Created com.aionemu.gameserver.model.gameobjects.player.PortalCooldown
+	Adjusted com.aionemu.gameserver.model.gameobjects.player.PortalCooldownList to use it.
+		Fixed resulting compile errors:
+			com.aionemu.gameserver.network.aion.serverpackets.SM_INSTANCE_INFO
+			mysql5.MySQL5PortalCooldownsDAO
+	Implemented instance entries -- though currently the packet for displaying the entry count is probably wrong.
+
+Requires DB update Friend List Memo Update
+com.aionemu.gameserver.model.gameobjects.player.Friend -- added {@link #getMemo()}.
+
+mysql5.MySQL5FriendListDAO -- added memo functionality.
+
+com.aionemu.gameserver.dao.FriendListDAO -- added memo functionality.
+
+Created com.aionemu.gameserver.network.aion.clientpackets.CM_FRIEND_SET_MEMO, added it to com.aionemu.gameserver.network.factories.AionPacketHandlerFactory
+
+com.aionemu.gameserver.network.aion.serverpackets.SM_FRIEND_LIST -- added memo to packet.
+
+admincommands.SpawnNpc -- Changed spawn command to sp
+
+Created admincommands.Spawn
+	Made a new spawn command that only allows temporary mobs
+
+Re-added //sys and //set admin commands.
+
+Created admincommands.Remove
+
+re-added .drop.
+
+_______________________________________________________________________________________________________________________________________________________________________________
+
+com.aionemu.gameserver.model.gameobjects.Homing -- {@link #getAttackType()} now functions as whoever coded it intended.
+
+com.aionemu.gameserver.skillengine.effect.SummonHomingEffect
+	Added {@link #getSpread(float, float, float, byte, float, float)}, and changed how the summoned Homing begins its attack.
+
+ai.HomingNpcAI2 -- modified it.
+
+ai.ChestAI2 -- Execution order changed to avoid the chest despawning in the middle of looting from the lootlessCorpseCheck
+
+quest.morheim._2303DaevaWheresMyHerb -- can now turn in at Favyr (as well)
+
+Updated static_data/quest_script_data/
+	morheim.xml to add
+		end_npc_ids to Q2429 [Keeping Warm]
+		start_npc_ids 204424 to Q2424 [Greeting to an Alchemist]
+		end_var="10" (was 20) to Q4317 [Land of the Speed]
+	eltnen.xml to add 790004 to start_npc_ids to Q3327 [[Coin/Group] Kromede in the Temple]
+
+com.aionemu.gameserver.questEngine.handlers.models.MonsterHuntData -- corrected xml annotation for startDialog.
+
+quest.brusthonin._4011AnOldSettlersLetter -- The quest can now be acquired.
+
+static_data/npcs/npc_templates.xml --> 203701, added is_dialog="true" to talk_info
+
+quest.theobomos._3058StoneofMabolo -- commented out some code that was preventing an NPC from talking.
+
+com.aionemu.gameserver.model.gameobjects.state.CreatureSeeState -- added {@link #SEARCH20}.
+
+Adjusted the CreatureSeeState applied to GM's in com.aionemu.gameserver.services.player.PlayerEnterWorldService
+	updated admincommands.See to match.
+
+Added config for rates.properties that allows server owners to specify bonus exp rates by level.
+
+com.aionemu.gameserver.model.gameobjects.player.RewardType -- adjusted for new config.
+
+Added the base magic attack of the owner to
+	com.aionemu.gameserver.model.stats.container
+		SummonedObjectGameStats
+		HomingGameStats
+
+Created admincommands.SubclassSwitch -- `//subclass` command -- swaps the target subclass.
+
+Created playercommands.cmd_quest_select -- `.questsel` command -- sends Dialog 10 to the player.
+
+Created admincommands.Manastone -- `//manastone <ManastoneId | 0>` command -- floods empty manastone slots with specified manastone
+
+_______________________________________________________________________________________________________________________________________________________________________________
+
+>
+
+Check non-custom Altgard NPC spawns in next patch
+temp added Dev command
+
+
+
+
+
+
+
+
+
+
+
+
+
+

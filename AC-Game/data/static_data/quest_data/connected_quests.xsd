@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<xs:schema version="1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:element name="chain" type="connectedQuest"/>
+  <xs:element name="connected_quests" type="connectedQuestData"/>
+  <xs:complexType name="connectedQuestData">
+    <xs:sequence>
+      <xs:element ref="chain" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="connectedQuest">
+    <xs:sequence/>
+    <xs:attribute name="parent_quest" type="xs:int" use="required"/>
+    <xs:attribute name="con_quest" type="xs:int" use="required"/>
+  </xs:complexType>
+</xs:schema>

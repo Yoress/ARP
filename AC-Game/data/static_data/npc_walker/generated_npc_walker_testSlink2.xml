@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<npc_walker>
+    <walker_template route_id="testSlink2" pool="1">
+        <routestep step="1" x="1462.7507" y="1215.5856" z="298.86078"/>
+        <routestep step="2" x="1460.9902" y="1208.7151" z="298.86075"/>
+    </walker_template>
+</npc_walker>
