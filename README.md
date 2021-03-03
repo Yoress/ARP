@@ -19,7 +19,7 @@ I have not decided if I will continue to develop this codebase any further as it
 
 _______________________________________________________________________________________
 # Who am I?
-I am the former Aion Reconstruction Project devoloper "Yoress" aka Yon#7259 on Discord.
+I am the former Aion Reconstruction Project developer "Yoress" aka Yon#7259 on Discord.
 
 I decided to amicably part ways with my former team due to the leader of said team being too easily influenced by the playerbase of our public testing server.
 
